@@ -1,0 +1,8 @@
+name = Link Permission
+description = A custom module to access link by individual user developed by Mohammad Ullah Al Kafi
+package = Custom
+core = 7.x
+version = 1.0.01
+scripts[] = js/linkpermission.js
+stylesheets[all][] = css/linkpermission.css
+

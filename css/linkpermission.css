@@ -1,0 +1,40 @@
+#get-user-list-form .form-item{
+	display:block;
+}
+.field-holder {
+    border: medium none;
+    display: table-cell;
+    vertical-align: top;
+    width: 100%;
+}
+
+.field-holder .form-item {
+    display: inline-block !important;
+    margin-top: 0;
+    width: 45%;
+}
+
+#get-user-list-form .form-item label{
+	color: gray;
+    display: inline-block;
+    font-family: arial;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: left;
+    width: 170px;
+		max-width:25%;
+}
+
+#get-user-list-form .form-item select{
+	 border: 1px solid #ccc;
+    display: inline-block;
+    max-width: 70%;
+    padding: 4px;
+    width: 180px;
+	
+}
+
+#get-user-list-form #edit-fieldset{
+	/* border:1px solid #cccccc;
+	padding:25px; */
+}

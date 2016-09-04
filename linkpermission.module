@@ -1,0 +1,110 @@
+<?php
+
+function linkpermission_permission() {
+    return array(
+        'linkpermission' => array('title' => t('Administer Link Permissions'),),
+    );
+}
+
+function linkpermission_menu(){
+	$items = array();
+	
+	$items['admin/accesslink'] = array(
+		'title'=>t('User Permissions'),
+		'description' => t('Enter menu links and title to list'),		
+		'page callback' => 'linkaccess',		
+		'access arguments' => array('linkpermission'),
+		'file'=>'inc/access_list.inc',
+		'type'=>MENU_NORMAL_ITEM,		
+	);
+
+	$items['access_modules'] = array(
+		'title'=>t('Link Items'),
+		'description' => t('Enter link group for permission'),		
+		'page callback' => 'form_access_module',		
+		'access arguments' => array('access content'),
+		'file'=>'inc/access_list.inc',
+		'type'=>MENU_NORMAL_ITEM,		
+	);
+	
+	$items['access_pages'] = array(
+		'title'=>t('Link Items'),
+		'description' => t('Enter link group for permission'),		
+		'page callback' => 'form_access_pages',		
+		'access arguments' => array('access content'),
+		'file'=>'inc/access_list.inc',
+		'type'=>MENU_NORMAL_ITEM,		
+	);
+
+
+
+
+
+	return $items;
+}
+
+function get_all_active_users(){
+	global $user;
+	$user_data = user_load($user->uid);
+	$data = array();
+	$company_id = isset($user_data->field_user_company['und'][0]['value'])?$user_data->field_user_company['und'][0]['value']:'';
+	$result = db_query("SELECT uid, name FROM users WHERE status='1' AND uid IN (SELECT entity_id FROM `field_data_field_user_company` WHERE `field_user_company_value`='$company_id') AND uid != $user->uid")->fetchAll(); 
+	if(!empty($result) && is_array($result)){
+		foreach($result AS $r){
+			$data[$r->uid] = $r->name;
+		}
+	}
+	return $data;
+}
+
+function get_users_by_role($rid){
+	global $user;
+	$user_data = user_load($user->uid);
+	$company_id = $user_data->field_user_company['und'][0]['value']; 	
+	$data = array();	
+	$query = "SELECT DISTINCT(ur.uid) FROM {users_roles} AS ur WHERE ur.rid IN (:rid) AND ur.uid IN (SELECT entity_id FROM `field_data_field_user_company` WHERE `field_user_company_value`='$company_id') AND uid != $user->uid";
+
+	$result = db_query($query, array(':rid' => array($rid))); 
+	$uids = $result->fetchCol(); 	
+	if(!empty($uids) && is_array($uids)){
+		$temp = implode(',',$uids);
+		$res = db_query("SELECT uid, name FROM users WHERE uid IN ($temp)")->fetchAll();
+		foreach($res AS $r){
+			$data[$r->uid] = $r->name;
+		}
+	}
+	return $data;
+}
+
+/***
+Check for access
+*/
+function check_access($uid,$arg0,$arg1,$arg2){ 
+	if($arg1 == 'node' && $arg2 == 'edit'){
+		$n = node_load($arg1,NULL,TRUE);
+		$ntype = $n->type; 
+		$flag = db_query("SELECT aflag FROM access_links WHERE uid='$uid' AND node_type LIKE '$ntype'")->fetchField();
+		if($flag === '0'){
+			return '0';
+		}
+	}	
+	elseif($arg1 == 'add'){
+		$ntype = arg(2); 
+		$flag = db_query("SELECT aflag FROM access_links WHERE uid='$uid' AND node_type LIKE '$ntype'")->fetchField();
+		if($flag === '0'){
+			return '0';
+		}
+	}
+	return $flag;	
+}
+
+function check_for_page_by_q($uid,$q){ 
+	$res = db_query("SELECT aflag FROM access_page_link WHERE uid='$uid' AND page_id = (SELECT id FROM `page_links` WHERE `page_link`='$q')")->fetchField(); 
+	
+	if($res === '0'){
+		return '0';
+	}
+	elseif($res === '1'){
+		return '1';
+	}
+}
